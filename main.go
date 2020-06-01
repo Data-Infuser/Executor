@@ -40,12 +40,11 @@ type Config struct {
 var metaDB *gorm.DB
 var dataDB *gorm.DB
 
-func dbConnect(dbType string, host string, port int, database string,
-	user string, password string) *gorm.DB {
+func dbConnect(config DBConfig) *gorm.DB {
+	connectURL := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True",
+		config.User, config.Password, config.Host, config.Port, config.DBName)
 
-	connectURL := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True", user, password, host, port, database)
-
-	db, err := gorm.Open(dbType, connectURL)
+	db, err := gorm.Open(config.DBType, connectURL)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -93,10 +92,8 @@ func main() {
 		panic(err.Error())
 	}
 
-	fmt.Println(config)
-
-	metaDB = dbConnect("mysql", "localhost", 3306, "api_gen_meta", "root", "2sjrnfl2")
-	dataDB = dbConnect("mysql", "localhost", 3306, "api_gen_data", "root", "2sjrnfl2")
+	metaDB = dbConnect(config.MetaDB)
+	dataDB = dbConnect(config.DataDB)
 
 	r := setupRouter()
 
