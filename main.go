@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
+	"runtime"
 
 	"queryprocessor/sqlbuilder"
 	"queryprocessor/sqlexecutor"
@@ -26,8 +27,9 @@ type DBConfig struct {
 
 // ServerConfig : Server side Config
 type ServerConfig struct {
-	Host string `yaml:"host"`
-	Port int    `yaml:"port"`
+	Host      string `yaml:"host"`
+	Port      int    `yaml:"port"`
+	MaxUseCPU int    `yaml:"maxUseCPU"`
 }
 
 // Config : Whole Config Information
@@ -95,6 +97,8 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+
+	runtime.GOMAXPROCS(config.Server.MaxUseCPU)
 
 	metaDB = dbConnect(config.MetaDB)
 	dataDB = dbConnect(config.DataDB)
