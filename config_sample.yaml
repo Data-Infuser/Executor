@@ -1,0 +1,17 @@
+mataDB:
+  dbName: "api_gen_mata"
+  dbType: "mysql"
+  host: "localhost"
+  port: 3306
+  user: ""
+  password: ""
+dataDB:
+  dbName: "api_gen_data"
+  dbType: "mysql"
+  host: "localhost"
+  port: 3306
+  user: ""
+  password: ""
+server:
+  host: "localhost"
+  port: 3300
