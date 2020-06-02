@@ -15,13 +15,16 @@ type Executor struct{}
 
 // Execute : Data DB에 SQL을 실행하여 데이터를 가져오는 함수
 func (e *Executor) Execute(
-	db *gorm.DB, query string, cntQuery string, colType map[string]string) ([]map[string]interface{}, int) {
+	db *gorm.DB, query string, matchQuery string, cntQuery string, colType map[string]string) ([]map[string]interface{}, int, int) {
 	if db == nil {
 		panic("error")
 	}
 
 	totalCnt := make(chan int)
-	go getTotalCnt(db, cntQuery, totalCnt)
+	go getCount(db, cntQuery, totalCnt)
+
+	matchCnt := make(chan int)
+	go getCount(db, matchQuery, matchCnt)
 
 	rows, err := db.Raw(query).Rows()
 	if err != nil {
@@ -69,10 +72,10 @@ func (e *Executor) Execute(
 		panic(err.Error())
 	}
 
-	return results, <-totalCnt
+	return results, <-matchCnt, <-totalCnt
 }
 
-func getTotalCnt(db *gorm.DB, cntQuery string, cnt chan int) {
+func getCount(db *gorm.DB, cntQuery string, cnt chan int) {
 	var totalCnt models.CountRecord
 	db.Raw(cntQuery).First(&totalCnt)
 

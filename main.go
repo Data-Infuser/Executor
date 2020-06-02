@@ -9,6 +9,7 @@ import (
 
 	"queryprocessor/sqlbuilder"
 	"queryprocessor/sqlexecutor"
+	"queryprocessor/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -63,9 +64,20 @@ func setupRouter() *gin.Engine {
 	b := new(sqlbuilder.Builder)
 
 	r.GET("/api/:api", func(c *gin.Context) {
+		defer func() {
+			if err := recover(); err != nil {
+				switch err.(type) {
+				case *utils.APIError:
+					apiError := err.(*utils.APIError)
+					c.JSON(http.StatusBadRequest, apiError)
+				default:
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+				}
+			}
+		}()
 		api := b.GetMeta(metaDB, c.Param("api"))
-		searchSQL, countSQL, colType := b.BuildSQL(api, c)
-		data, cnt := e.Execute(dataDB, searchSQL, countSQL, colType)
+		searchSQL, matchSQL, countSQL, colType := b.BuildSQL(api, c)
+		data, matchCnt, cnt := e.Execute(dataDB, searchSQL, matchSQL, countSQL, colType)
 
 		page, perPage := sqlbuilder.GetPage(c)
 
@@ -73,6 +85,7 @@ func setupRouter() *gin.Engine {
 			"page":         page,
 			"perPage":      perPage,
 			"currentCount": len(data),
+			"matchCount":   matchCnt,
 			"totalCount":   cnt,
 			"data":         data,
 		})
@@ -102,11 +115,9 @@ func main() {
 
 	metaDB = dbConnect(config.MetaDB)
 	dataDB = dbConnect(config.DataDB)
-
-	r := setupRouter()
-
-	r.Run(fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port))
-
 	defer metaDB.Close()
 	defer dataDB.Close()
+
+	r := setupRouter()
+	r.Run(fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port))
 }
