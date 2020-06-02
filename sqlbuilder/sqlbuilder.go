@@ -16,7 +16,7 @@ import (
 // Builder : builder 내의 함수를 사용하기 위한 구조체
 type Builder struct{}
 
-const defaultPage int64 = 0
+const defaultPage int64 = 1
 const defaultPerPage int64 = 500
 
 var colToOp *utils.ColTypeToOperation = utils.NewColTypeToOperation()
@@ -44,7 +44,7 @@ func (builder *Builder) BuildSQL(api *models.API, params *gin.Context) (string, 
 
 	condition := buildCondition(params, api.APIColumns)
 
-	searchQuery := fmt.Sprintf("SELECT %s FROM %s %s limit %d, %d", strings.Join(cols, ", "), tableName, condition, page*perPage, (page+1)*perPage)
+	searchQuery := fmt.Sprintf("SELECT %s FROM %s %s limit %d, %d", strings.Join(cols, ", "), tableName, condition, (page-1)*perPage, page*perPage)
 	cntQuery := fmt.Sprintf("SELECT count(*) as cnt FROM %s", tableName)
 	matchQuery := fmt.Sprintf("SELECT count(*) as cnt FROM %s %s", tableName, condition)
 
