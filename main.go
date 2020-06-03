@@ -64,7 +64,7 @@ func setupRouter() *gin.Engine {
 	e := new(sqlexecutor.Executor)
 	b := new(sqlbuilder.Builder)
 
-	r.GET("/api/:api", func(c *gin.Context) {
+	r.GET("/rest/:application/:api", func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
 				switch err.(type) {
@@ -76,7 +76,8 @@ func setupRouter() *gin.Engine {
 				}
 			}
 		}()
-		api := b.GetMeta(metaDB, c.Param("api"))
+
+		api := b.GetMeta(metaDB, c.Param("application"), c.Param("api"))
 		searchSQL, matchSQL, countSQL, colType := b.BuildSQL(api, c)
 		data, matchCnt, totalCnt := e.Execute(dataDB, searchSQL, matchSQL, countSQL, colType)
 

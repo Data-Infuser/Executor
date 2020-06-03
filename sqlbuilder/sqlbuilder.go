@@ -22,9 +22,14 @@ const defaultPerPage int64 = 500
 var colToOp *utils.ColTypeToOperation = utils.NewColTypeToOperation()
 
 // GetMeta : 호출 받은 api의 메타 데이터를 가져오는 함수
-func (builder *Builder) GetMeta(db *gorm.DB, api string) *models.API {
+func (builder *Builder) GetMeta(db *gorm.DB, application string, api string) *models.API {
 	var a models.API
-	db.Preload("APIColumns").Where("api.tableName = ?", api).First(&a)
+
+	db.Preload("APIColumns").Where(
+		"api.entityName = ?", "api1",
+	).Joins(
+		"JOIN application on application.id = api.applicationId",
+	).Where("application.nameSpace = ?", "test_app").First(&a)
 
 	return &a
 }
