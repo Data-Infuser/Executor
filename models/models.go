@@ -38,35 +38,48 @@ type MetaColumn struct {
 }
 
 type User struct {
-	ID        int `gorm:"PRIMARY_KEY"`
-	Username  string
-	Password  string
+	ID        int       `gorm:"PRIMARY_KEY"`
+	Username  string    `gorm:"column:userName"`
+	Password  string    `gorm:"column:password"`
 	CreatedAt time.Time `gorm:"column:createdAt"`
 	UpdatedAt time.Time `gorm:"column:updatedAt"`
 	Metas     []Meta    `gorm:"foreignkey:userId"`
 }
 
+type Application struct {
+	ID        int       `gorm:"PRIMARY_KEY"`
+	NameSpace string    `gorm:"column:nameSpace"`
+	Title     string    `gorm:"column:title"`
+	Desc      string    `gorm:"column:description"`
+	CreatedAt time.Time `gorm:"column:createdAt"`
+	UpdatedAt time.Time `gorm:"column:updatedAt"`
+	User      *User     `gorm:"foreignkey:userId"`
+	UserID    int       `gorm:"column:userId"`
+	APIs      []API     `gorm:"foreignkey:applicationId;association_foreignkey:id"`
+}
+
 type API struct {
-	ID         int `gorm:"PRIMARY_KEY"`
-	Title      string
-	EntityName string      `gorm:"column:entityName"`
-	Tn         string      `gorm:"column:tableName"`
-	DataCounts int         `gorm:"column:dataCounts"`
-	User       *User       `gorm:"foreignkey:userId"`
-	UserID     int         `gorm:"column:userId"`
-	Meta       *Meta       `gorm:"foreignkey:metaId"`
-	MetaID     int         `gorm:"column:metaId"`
-	APIColumns []ApiColumn `gorm:"foreignkey:apiId;association_foreignkey:id"`
-	CreatedAt  time.Time   `gorm:"column:createdAt"`
-	UpdatedAt  time.Time   `gorm:"column:updatedAt"`
+	ID            int         `gorm:"PRIMARY_KEY"`
+	Title         string      `gorm:"column:title"`
+	EntityName    string      `gorm:"column:entityName"`
+	Tn            string      `gorm:"column:tableName"`
+	DataCounts    int         `gorm:"column:dataCounts"`
+	User          *User       `gorm:"foreignkey:userId"`
+	UserID        int         `gorm:"column:userId"`
+	Meta          *Meta       `gorm:"foreignkey:metaId"`
+	MetaID        int         `gorm:"column:metaId"`
+	APIColumns    []ApiColumn `gorm:"foreignkey:apiId;association_foreignkey:id"`
+	ApplicationID int         `gorm:"column:applicationId"`
+	CreatedAt     time.Time   `gorm:"column:createdAt"`
+	UpdatedAt     time.Time   `gorm:"column:updatedAt"`
 }
 
 type ApiColumn struct {
 	ID         int    `gorm:"PRIMARY_KEY"`
 	ColumnName string `gorm:"column:columnName"`
 	Typ        string `gorm:"column:type"`
-	Hidden     bool
-	APIID      int `gorm:"column:apiId"`
+	Hidden     bool   `gorm:"column:hidden"`
+	APIID      int    `gorm:"column:apiId"`
 }
 
 type CountRecord struct {
@@ -79,6 +92,10 @@ func (meta Meta) TableName() string {
 
 func (metaColumn MetaColumn) TableName() string {
 	return "meta_column"
+}
+
+func (application Application) TableName() string {
+	return "application"
 }
 
 func (api API) TableName() string {
