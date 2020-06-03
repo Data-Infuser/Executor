@@ -31,6 +31,7 @@ type ServerConfig struct {
 	Host      string `yaml:"host"`
 	Port      int    `yaml:"port"`
 	MaxUseCPU int    `yaml:"maxUseCPU"`
+	Env       string `yaml:"env"`
 }
 
 // Config : Whole Config Information
@@ -89,6 +90,10 @@ func setupRouter() *gin.Engine {
 			"totalCount":   cnt,
 			"data":         data,
 		})
+	})
+
+	r.NoRoute(func(c *gin.Context) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Page Not Found"})
 	})
 
 	return r
