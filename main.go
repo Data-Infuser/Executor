@@ -111,6 +111,16 @@ func main() {
 		panic(err.Error())
 	}
 
+	var env string
+
+	switch config.Server.Env {
+	case "development":
+		env = "debug"
+	case "production":
+		env = "release"
+	}
+
+	gin.SetMode(env)
 	runtime.GOMAXPROCS(config.Server.MaxUseCPU)
 
 	metaDB = dbConnect(config.MetaDB)

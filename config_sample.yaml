@@ -13,6 +13,7 @@ dataDB:
   user: ""
   password: ""
 server:
+  env: "development"
   host: "localhost"
   port: 3300
   maxUseCPU: 4
