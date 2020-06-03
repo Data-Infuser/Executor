@@ -9,6 +9,8 @@
 ### 프로젝트 환경
 * Golang 1.13.4
 * MySQL 5.7
+* GIN (go http web framework, https://github.com/gin-gonic/gin)
+* GORM (go orm library, https://github.com/jinzhu/gorm)
 
 
 ### Go 프로젝트 Dependency 설치
