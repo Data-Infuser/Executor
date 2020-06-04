@@ -56,6 +56,11 @@ func (builder *Builder) BuildSQL(api *models.API, params *gin.Context) (string, 
 	return searchQuery, matchQuery, cntQuery, colType
 }
 
+// GetOperatorByType : 칼럼 타입 별 사용 가능한 Operator 리스트 반환
+func GetOperatorByType() utils.ColTypeToOperation {
+	return *colToOp
+}
+
 // GetPage : get page, perPage parameter to query param
 func GetPage(params *gin.Context) (int64, int64) {
 	var page, perPage int64

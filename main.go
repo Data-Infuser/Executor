@@ -93,6 +93,10 @@ func setupRouter() *gin.Engine {
 		})
 	})
 
+	r.GET("/operators", func(c *gin.Context) {
+		c.JSON(http.StatusOK, sqlbuilder.GetOperatorByType())
+	})
+
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Page Not Found"})
 	})

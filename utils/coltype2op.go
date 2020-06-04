@@ -2,10 +2,10 @@ package utils
 
 // ColTypeToOperation : 칼럼 타입 별 사용가능한 operation 리스트
 type ColTypeToOperation struct {
-	Number  []string
-	Str     []string
-	Dt      []string
-	Boolean []string
+	Number  []string `json:"number"`
+	Str     []string `json:"string"`
+	Dt      []string `json:"date"`
+	Boolean []string `json:"boolean"`
 }
 
 // NewColTypeToOperation : ColTypeToOperation 생성 함수
