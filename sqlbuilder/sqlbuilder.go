@@ -49,9 +49,9 @@ func (builder *Builder) BuildSQL(api *models.API, params *gin.Context) (string, 
 
 	condition := buildCondition(params, api.APIColumns)
 
-	searchQuery := fmt.Sprintf("SELECT %s FROM %s %s limit %d, %d", strings.Join(cols, ", "), tableName, condition, (page-1)*perPage, page*perPage)
-	cntQuery := fmt.Sprintf("SELECT count(*) as cnt FROM %s", tableName)
-	matchQuery := fmt.Sprintf("SELECT count(*) as cnt FROM %s %s", tableName, condition)
+	searchQuery := fmt.Sprintf("SELECT %s FROM `%s` %s limit %d, %d", strings.Join(cols, ", "), tableName, condition, (page-1)*perPage, page*perPage)
+	cntQuery := fmt.Sprintf("SELECT count(*) as cnt FROM `%s`", tableName)
+	matchQuery := fmt.Sprintf("SELECT count(*) as cnt FROM `%s` %s", tableName, condition)
 
 	return searchQuery, matchQuery, cntQuery, colType
 }
