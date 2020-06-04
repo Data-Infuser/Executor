@@ -26,10 +26,10 @@ func (builder *Builder) GetMeta(db *gorm.DB, application string, api string) *mo
 	var a models.API
 
 	db.Preload("APIColumns").Where(
-		"api.entityName = ?", "api1",
+		"api.entityName = ?", api,
 	).Joins(
 		"JOIN application on application.id = api.applicationId",
-	).Where("application.nameSpace = ?", "test_app").First(&a)
+	).Where("application.nameSpace = ?", application).First(&a)
 
 	return &a
 }
