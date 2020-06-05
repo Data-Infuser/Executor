@@ -97,7 +97,14 @@ func buildCondition(params *gin.Context, cols []models.ServiceColumn) string {
 	for k, v := range conditions {
 		splited := strings.Split(k, "::")
 		col := arrayInAPIColumn(splited[0], cols)
-		if col == nil {
+
+		if !checkPossibleOperation(col.Typ, splited[1]) {
+			err := new(utils.APIError)
+			err.Status = 400
+			err.Message = "Invalid Operator Error"
+
+			panic(err)
+		} else if col == nil {
 			err := new(utils.APIError)
 			err.Status = 400
 			err.Message = "Invalid Parameter Error"
