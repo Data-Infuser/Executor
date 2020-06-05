@@ -77,8 +77,8 @@ func setupRouter() *gin.Engine {
 			}
 		}()
 
-		api := b.GetMeta(metaDB, c.Param("application"), c.Param("api"))
-		searchSQL, matchSQL, countSQL, colType := b.BuildSQL(api, c)
+		service := b.GetMeta(metaDB, c.Param("application"), c.Param("api"))
+		searchSQL, matchSQL, countSQL, colType := b.BuildSQL(service, c)
 		data, matchCnt, totalCnt := e.Execute(dataDB, searchSQL, matchSQL, countSQL, colType)
 
 		page, perPage := sqlbuilder.GetPage(c)

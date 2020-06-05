@@ -21,7 +21,7 @@ type Meta struct {
 	Skip             int          `gorm:"column:skip"`
 	Sheet            int          `gorm:"column:sheet"`
 	IsActive         bool         `gorm:"column:isActive"`
-	API              API          `gorm:"foreignkey:metaId"`
+	Service          Service      `gorm:"foreignkey:metaId"`
 	MetaColumns      []MetaColumn `gorm:"foreignkey:metaId;association_foreignkey:id"`
 }
 
@@ -47,39 +47,39 @@ type User struct {
 }
 
 type Application struct {
-	ID        int       `gorm:"PRIMARY_KEY"`
-	NameSpace string    `gorm:"column:nameSpace"`
-	Title     string    `gorm:"column:title"`
-	Desc      string    `gorm:"column:description"`
-	CreatedAt time.Time `gorm:"column:createdAt"`
-	UpdatedAt time.Time `gorm:"column:updatedAt"`
-	User      *User     `gorm:"foreignkey:userId"`
-	UserID    int       `gorm:"column:userId"`
-	APIs      []API     `gorm:"foreignkey:applicationId;association_foreignkey:id"`
+	ID             int       `gorm:"PRIMARY_KEY"`
+	NameSpace      string    `gorm:"column:nameSpace"`
+	Title          string    `gorm:"column:title"`
+	Desc           string    `gorm:"column:description"`
+	CreatedAt      time.Time `gorm:"column:createdAt"`
+	UpdatedAt      time.Time `gorm:"column:updatedAt"`
+	User           *User     `gorm:"foreignkey:userId"`
+	UserID         int       `gorm:"column:userId"`
+	ServiceColumns []Service `gorm:"foreignkey:applicationId;association_foreignkey:id"`
 }
 
-type API struct {
-	ID            int         `gorm:"PRIMARY_KEY"`
-	Title         string      `gorm:"column:title"`
-	EntityName    string      `gorm:"column:entityName"`
-	Tn            string      `gorm:"column:tableName"`
-	DataCounts    int         `gorm:"column:dataCounts"`
-	User          *User       `gorm:"foreignkey:userId"`
-	UserID        int         `gorm:"column:userId"`
-	Meta          *Meta       `gorm:"foreignkey:metaId"`
-	MetaID        int         `gorm:"column:metaId"`
-	APIColumns    []ApiColumn `gorm:"foreignkey:apiId;association_foreignkey:id"`
-	ApplicationID int         `gorm:"column:applicationId"`
-	CreatedAt     time.Time   `gorm:"column:createdAt"`
-	UpdatedAt     time.Time   `gorm:"column:updatedAt"`
+type Service struct {
+	ID             int             `gorm:"PRIMARY_KEY"`
+	Title          string          `gorm:"column:title"`
+	EntityName     string          `gorm:"column:entityName"`
+	Tn             string          `gorm:"column:tableName"`
+	DataCounts     int             `gorm:"column:dataCounts"`
+	User           *User           `gorm:"foreignkey:userId"`
+	UserID         int             `gorm:"column:userId"`
+	Meta           *Meta           `gorm:"foreignkey:metaId"`
+	MetaID         int             `gorm:"column:metaId"`
+	ServiceColumns []ServiceColumn `gorm:"foreignkey:serviceId;association_foreignkey:id"`
+	ApplicationID  int             `gorm:"column:applicationId"`
+	CreatedAt      time.Time       `gorm:"column:createdAt"`
+	UpdatedAt      time.Time       `gorm:"column:updatedAt"`
 }
 
-type ApiColumn struct {
+type ServiceColumn struct {
 	ID         int    `gorm:"PRIMARY_KEY"`
 	ColumnName string `gorm:"column:columnName"`
 	Typ        string `gorm:"column:type"`
 	Hidden     bool   `gorm:"column:hidden"`
-	APIID      int    `gorm:"column:apiId"`
+	ServiceID  int    `gorm:"column:serviceId"`
 }
 
 type CountRecord struct {
@@ -98,12 +98,12 @@ func (application Application) TableName() string {
 	return "application"
 }
 
-func (api API) TableName() string {
-	return "api"
+func (service Service) TableName() string {
+	return "service"
 }
 
-func (apiColumn ApiColumn) TableName() string {
-	return "api_column"
+func (sericeColumn ServiceColumn) TableName() string {
+	return "service_column"
 }
 
 func (user User) TableName() string {

@@ -22,32 +22,32 @@ const defaultPerPage int64 = 500
 var colToOp *utils.ColTypeToOperation = utils.NewColTypeToOperation()
 
 // GetMeta : 호출 받은 api의 메타 데이터를 가져오는 함수
-func (builder *Builder) GetMeta(db *gorm.DB, application string, api string) *models.API {
-	var a models.API
+func (builder *Builder) GetMeta(db *gorm.DB, application string, serviceNm string) *models.Service {
+	var service models.Service
 
-	db.Preload("APIColumns").Where(
-		"api.entityName = ?", api,
+	db.Preload("ServiceColumns").Where(
+		"entityName = ?", serviceNm,
 	).Joins(
-		"JOIN application on application.id = api.applicationId",
-	).Where("application.nameSpace = ?", application).First(&a)
+		"JOIN application on application.id = service.applicationId",
+	).Where("application.nameSpace = ?", application).First(&service)
 
-	return &a
+	return &service
 }
 
 // BuildSQL : API객체와 쿼리 파라미터를 받아 Data DB에서 실제 데이터를 가져올 SQL을 build하는 함수
-func (builder *Builder) BuildSQL(api *models.API, params *gin.Context) (string, string, string, map[string]string) {
-	tableName := api.Tn
-	cols := make([]string, len(api.APIColumns))
+func (builder *Builder) BuildSQL(service *models.Service, params *gin.Context) (string, string, string, map[string]string) {
+	tableName := service.Tn
+	cols := make([]string, len(service.ServiceColumns))
 	colType := make(map[string]string)
 
-	for i, col := range api.APIColumns {
+	for i, col := range service.ServiceColumns {
 		cols[i] = col.ColumnName
 		colType[col.ColumnName] = col.Typ
 	}
 
 	page, perPage := GetPage(params)
 
-	condition := buildCondition(params, api.APIColumns)
+	condition := buildCondition(params, service.ServiceColumns)
 
 	searchQuery := fmt.Sprintf("SELECT %s FROM `%s` %s limit %d, %d", strings.Join(cols, ", "), tableName, condition, (page-1)*perPage, page*perPage)
 	cntQuery := fmt.Sprintf("SELECT count(*) as cnt FROM `%s`", tableName)
@@ -90,7 +90,7 @@ func GetPage(params *gin.Context) (int64, int64) {
 	return page, perPage
 }
 
-func buildCondition(params *gin.Context, cols []models.ApiColumn) string {
+func buildCondition(params *gin.Context, cols []models.ServiceColumn) string {
 	condition := make([]string, 0)
 	conditions := params.QueryMap("cond")
 
@@ -117,7 +117,7 @@ func buildCondition(params *gin.Context, cols []models.ApiColumn) string {
 	return result
 }
 
-func translateOperation(op string, col *models.ApiColumn, val string) string {
+func translateOperation(op string, col *models.ServiceColumn, val string) string {
 	switch op {
 	case "lt":
 		val = wrapValueForType(val, col.Typ)
@@ -205,7 +205,7 @@ func arrayInStr(key string, arr []string) *string {
 	return nil
 }
 
-func arrayInAPIColumn(key string, arr []models.ApiColumn) *models.ApiColumn {
+func arrayInAPIColumn(key string, arr []models.ServiceColumn) *models.ServiceColumn {
 	for _, v := range arr {
 		if v.ColumnName == key {
 			return &v
