@@ -3,6 +3,7 @@ package sqlexecutor
 import (
 	"database/sql"
 	"queryprocessor/models"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -87,7 +88,9 @@ func typeParse(colType string, data string) interface{} {
 	var t time.Time
 	var err error
 
-	switch colType {
+	r, _ := regexp.Compile("[^(]+")
+
+	switch r.FindString(colType) {
 	case "text":
 		fallthrough
 	case "longtext":
