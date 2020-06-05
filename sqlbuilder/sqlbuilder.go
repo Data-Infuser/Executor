@@ -2,6 +2,7 @@ package sqlbuilder
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -173,7 +174,9 @@ func wrapValueForType(val string, colType string) string {
 func checkPossibleOperation(colType string, operation string) bool {
 	var arr []string
 
-	switch colType {
+	r, _ := regexp.Compile("[^(]+")
+
+	switch r.FindString(colType) {
 	case "text":
 		fallthrough
 	case "longtext":
