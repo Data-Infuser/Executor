@@ -55,6 +55,7 @@ type Application struct {
 	UpdatedAt      time.Time `gorm:"column:updatedAt"`
 	User           *User     `gorm:"foreignkey:userId"`
 	UserID         int       `gorm:"column:userId"`
+	Status         string    `gorm:"column:status"`
 	ServiceColumns []Service `gorm:"foreignkey:applicationId;association_foreignkey:id"`
 }
 
@@ -68,7 +69,9 @@ type Service struct {
 	UserID         int             `gorm:"column:userId"`
 	Meta           *Meta           `gorm:"foreignkey:metaId"`
 	MetaID         int             `gorm:"column:metaId"`
+	Status         string          `gorm:"column:status"`
 	ServiceColumns []ServiceColumn `gorm:"foreignkey:serviceId;association_foreignkey:id"`
+	Application    Application     `gorm:"foreignkey:applicationId"`
 	ApplicationID  int             `gorm:"column:applicationId"`
 	CreatedAt      time.Time       `gorm:"column:createdAt"`
 	UpdatedAt      time.Time       `gorm:"column:updatedAt"`

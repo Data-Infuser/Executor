@@ -26,11 +26,25 @@ var colToOp *utils.ColTypeToOperation = utils.NewColTypeToOperation()
 func (builder *Builder) GetMeta(db *gorm.DB, application string, serviceNm string) *models.Service {
 	var service models.Service
 
-	db.Preload("ServiceColumns").Where(
+	db.Preload("ServiceColumns").Preload("Application").Where(
 		"entityName = ?", serviceNm,
 	).Joins(
 		"JOIN application on application.id = service.applicationId",
 	).Where("application.nameSpace = ?", application).First(&service)
+
+	if service.Application.Status != "deployed" {
+		err := new(utils.APIError)
+		err.Status = 400
+		err.Message = "This Application is Not Deployed"
+
+		panic(err)
+	} else if service.Status != "loaded" {
+		err := new(utils.APIError)
+		err.Status = 400
+		err.Message = "This Service's Data is Not Loaded"
+
+		panic(err)
+	}
 
 	return &service
 }
@@ -154,7 +168,9 @@ func translateOperation(op string, col *models.ServiceColumn, val string) string
 }
 
 func wrapValueForType(val string, colType string) string {
-	switch colType {
+	r, _ := regexp.Compile("[^(]+")
+
+	switch r.FindString(colType) {
 	case "text":
 		fallthrough
 	case "longtext":
