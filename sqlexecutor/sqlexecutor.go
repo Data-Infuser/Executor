@@ -2,6 +2,7 @@ package sqlexecutor
 
 import (
 	"database/sql"
+	"encoding/json"
 	"queryprocessor/models"
 	"regexp"
 	"strconv"
@@ -16,7 +17,7 @@ type Executor struct{}
 
 // Execute : Data DB에 SQL을 실행하여 데이터를 가져오는 함수
 func (e *Executor) Execute(
-	db *gorm.DB, query string, matchQuery string, cntQuery string, colType map[string]string) ([]map[string]interface{}, int, int) {
+	db *gorm.DB, query string, matchQuery string, cntQuery string, colType map[string]string) ([]string, int, int) {
 	if db == nil {
 		panic("error")
 	}
@@ -45,8 +46,8 @@ func (e *Executor) Execute(
 		scanArgs[i] = &values[i]
 	}
 
-	var results []map[string]interface{}
-	results = make([]map[string]interface{}, 0)
+	var results []string
+	results = make([]string, 0)
 
 	for rows.Next() {
 		err = rows.Scan(scanArgs...)
@@ -67,7 +68,12 @@ func (e *Executor) Execute(
 			row[columns[i]] = value
 		}
 
-		results = append(results, row)
+		r, err := json.Marshal(row)
+		if err != nil {
+			panic(err)
+		}
+
+		results = append(results, string(r))
 	}
 	if err = rows.Err(); err != nil {
 		panic(err.Error())

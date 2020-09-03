@@ -3,13 +3,12 @@ package sqlbuilder
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 
+	grpc_executor "queryprocessor/infuser-protobuf/gen/proto/executor"
 	"queryprocessor/models"
 	"queryprocessor/utils"
 
-	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 )
@@ -17,8 +16,8 @@ import (
 // Builder : builder 내의 함수를 사용하기 위한 구조체
 type Builder struct{}
 
-const defaultPage int64 = 1
-const defaultPerPage int64 = 500
+var defaultPage int32 = 1
+var defaultPerPage int32 = 500
 
 var colToOp *utils.ColTypeToOperation = utils.NewColTypeToOperation()
 
@@ -50,7 +49,7 @@ func (builder *Builder) GetMeta(db *gorm.DB, application string, serviceNm strin
 }
 
 // BuildSQL : API객체와 쿼리 파라미터를 받아 Data DB에서 실제 데이터를 가져올 SQL을 build하는 함수
-func (builder *Builder) BuildSQL(service *models.Service, params *gin.Context) (string, string, string, map[string]string) {
+func (builder *Builder) BuildSQL(service *models.Service, params *grpc_executor.ApiRequest) (string, string, string, map[string]string) {
 	tableName := service.Tn
 	cols := make([]string, len(service.ServiceColumns))
 	colType := make(map[string]string)
@@ -77,40 +76,31 @@ func GetOperatorByType() utils.ColTypeToOperation {
 }
 
 // GetPage : get page, perPage parameter to query param
-func GetPage(params *gin.Context) (int64, int64) {
-	var page, perPage int64
-	var err error
+func GetPage(params *grpc_executor.ApiRequest) (int32, int32) {
+	var page, perPage *int32
 
-	pageStr := params.Query("page")
-	perPageStr := params.Query("perPage")
+	page = params.Page
+	perPage = params.PerPage
 
-	if pageStr == "" {
-		page = defaultPage
-	} else {
-		page, err = strconv.ParseInt(pageStr, 0, 64)
-		if err != nil {
-			panic(err.Error())
-		}
+	if page == nil {
+		page = &defaultPage
 	}
 
-	if perPageStr == "" {
-		perPage = defaultPerPage
-	} else {
-		perPage, err = strconv.ParseInt(perPageStr, 0, 64)
-		if err != nil {
-			panic(err.Error())
-		}
+	if perPage == nil {
+		perPage = &defaultPerPage
 	}
 
-	return page, perPage
+	return *page, *perPage
 }
 
-func buildCondition(params *gin.Context, cols []models.ServiceColumn) string {
+func buildCondition(params *grpc_executor.ApiRequest, cols []models.ServiceColumn) string {
 	condition := make([]string, 0)
-	conditions := params.QueryMap("cond")
+	conditions := params.Cond
 
 	for k, v := range conditions {
 		splited := strings.Split(k, "::")
+		// println(splited[0])
+		// println(splited[1])
 		col := arrayInAPIColumn(splited[0], cols)
 
 		if !checkPossibleOperation(col.Typ, splited[1]) {
@@ -141,25 +131,25 @@ func buildCondition(params *gin.Context, cols []models.ServiceColumn) string {
 
 func translateOperation(op string, col *models.ServiceColumn, val string) string {
 	switch op {
-	case "lt":
+	case "LT":
 		val = wrapValueForType(val, col.Typ)
 		return col.ColumnName + " < " + val
-	case "lte":
+	case "LTE":
 		val = wrapValueForType(val, col.Typ)
 		return col.ColumnName + " <= " + val
-	case "gt":
+	case "GT":
 		val = wrapValueForType(val, col.Typ)
 		return col.ColumnName + " > " + val
-	case "gte":
+	case "GTE":
 		val = wrapValueForType(val, col.Typ)
 		return col.ColumnName + " >= " + val
-	case "like":
+	case "LIKE":
 		val = wrapValueForType("%"+val+"%", col.Typ)
 		return col.ColumnName + " like " + val
-	case "eq":
+	case "EQ":
 		val = wrapValueForType(val, col.Typ)
 		return col.ColumnName + " = " + val
-	case "neq":
+	case "NEQ":
 		val = wrapValueForType(val, col.Typ)
 		return col.ColumnName + " <> " + val
 	default:

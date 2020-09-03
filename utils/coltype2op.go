@@ -12,10 +12,10 @@ type ColTypeToOperation struct {
 func NewColTypeToOperation() *ColTypeToOperation {
 	c2op := new(ColTypeToOperation)
 
-	c2op.Number = []string{"lt", "lte", "gt", "gte", "eq", "neq"}
-	c2op.Str = []string{"eq", "neq", "like"}
-	c2op.Dt = []string{"lt", "lte", "gt", "gte", "eq", "neq"}
-	c2op.Boolean = []string{"eq", "neq"}
+	c2op.Number = []string{"LT", "LTE", "GT", "GTE", "EQ", "NEQ"}
+	c2op.Str = []string{"EQ", "NEQ", "LIKE"}
+	c2op.Dt = []string{"LT", "LTE", "GT", "GET", "EQ", "NEQ"}
+	c2op.Boolean = []string{"EQ", "NEQ"}
 
 	return c2op
 }

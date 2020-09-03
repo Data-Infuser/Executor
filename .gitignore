@@ -4,3 +4,5 @@ queryprocessor
 config.yaml
 
 go.sum
+
+infuser-protobuf

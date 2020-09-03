@@ -1,50 +1,22 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"path/filepath"
 	"runtime"
 
-	"queryprocessor/sqlbuilder"
-	"queryprocessor/sqlexecutor"
-	"queryprocessor/utils"
+	ctx "queryprocessor/ctx"
+	server "queryprocessor/grpc"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/yaml.v2"
 )
 
-// DBConfig : Database Config
-type DBConfig struct {
-	DBName   string `yaml:"dbName"`
-	DBType   string `yaml:"dbType"`
-	Host     string `yaml:"host"`
-	Port     int    `yaml:"port"`
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
-}
-
-// ServerConfig : Server side Config
-type ServerConfig struct {
-	Host      string `yaml:"host"`
-	Port      int    `yaml:"port"`
-	MaxUseCPU int    `yaml:"maxUseCPU"`
-	Env       string `yaml:"env"`
-}
-
-// Config : Whole Config Information
-type Config struct {
-	MetaDB DBConfig     `yaml:"metaDB"`
-	DataDB DBConfig     `yaml:"dataDB"`
-	Server ServerConfig `yaml:"server"`
-}
-
-var metaDB *gorm.DB
-var dataDB *gorm.DB
-
-func dbConnect(config DBConfig) *gorm.DB {
+func dbConnect(config ctx.DBConfig) *gorm.DB {
 	connectURL := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True",
 		config.User, config.Password, config.Host, config.Port, config.DBName)
 
@@ -61,52 +33,19 @@ func dbConnect(config DBConfig) *gorm.DB {
 
 func setupRouter() *gin.Engine {
 	r := gin.Default()
-	e := new(sqlexecutor.Executor)
-	b := new(sqlbuilder.Builder)
+	// e := new(sqlexecutor.Executor)
+	// b := new(sqlbuilder.Builder)
 
-	r.GET("/rest/:application/:api", func(c *gin.Context) {
-		defer func() {
-			if err := recover(); err != nil {
-				switch err.(type) {
-				case *utils.APIError:
-					apiError := err.(*utils.APIError)
-					c.JSON(http.StatusBadRequest, apiError)
-				default:
-					c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-				}
-			}
-		}()
-
-		service := b.GetMeta(metaDB, c.Param("application"), c.Param("api"))
-		searchSQL, matchSQL, countSQL, colType := b.BuildSQL(service, c)
-		data, matchCnt, totalCnt := e.Execute(dataDB, searchSQL, matchSQL, countSQL, colType)
-
-		page, perPage := sqlbuilder.GetPage(c)
-
-		c.JSON(http.StatusOK, gin.H{
-			"page":         page,
-			"perPage":      perPage,
-			"currentCount": len(data),
-			"matchCount":   matchCnt,
-			"totalCount":   totalCnt,
-			"data":         data,
-		})
-	})
-
-	r.GET("/operators", func(c *gin.Context) {
-		c.JSON(http.StatusOK, sqlbuilder.GetOperatorByType())
-	})
-
-	r.NoRoute(func(c *gin.Context) {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Page Not Found"})
-	})
+	// r.GET("/operators", func(c *gin.Context) {
+	// 	c.JSON(http.StatusOK, sqlbuilder.GetOperatorByType())
+	// })
 
 	return r
 }
 
 func main() {
 	// GC 호출을 줄이기 위한 방법
-	ballast := make([]byte, 10<<30)
+	ballast := make([]byte, 10<<24)
 	_ = ballast
 
 	filename, _ := filepath.Abs("config.yaml")
@@ -115,7 +54,7 @@ func main() {
 		panic(err.Error())
 	}
 
-	var config Config
+	var config ctx.Config
 	err = yaml.Unmarshal(file, &config)
 	if err != nil {
 		panic(err.Error())
@@ -133,11 +72,18 @@ func main() {
 	gin.SetMode(env)
 	runtime.GOMAXPROCS(config.Server.MaxUseCPU)
 
-	metaDB = dbConnect(config.MetaDB)
-	dataDB = dbConnect(config.DataDB)
-	defer metaDB.Close()
-	defer dataDB.Close()
+	ctx := new(ctx.Context)
 
-	r := setupRouter()
-	r.Run(fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port))
+	ctx.MetaDB = dbConnect(config.MetaDB)
+	ctx.DataDB = dbConnect(config.DataDB)
+	defer ctx.MetaDB.Close()
+	defer ctx.DataDB.Close()
+
+	var network = flag.String("network", "tcp", `one of "tcp" or "unix". Must be consistent to -endpoint`)
+
+	s := server.New(ctx)
+	if err := s.Run(*network, fmt.Sprintf(":%d", config.Server.Port)); err != nil {
+		println("Service Run failed")
+		println(err.Error())
+	}
 }
