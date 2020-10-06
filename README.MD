@@ -14,6 +14,11 @@
 
 > go get -u -v -f all
 
+## Proto Buffer 공통 모듈 다운로드
+```sh
+$ git clone git@gitlab.com:promptech1/data-infuser/infuser-protobuf.git
+```
+
 ## Build
 
 > go build
