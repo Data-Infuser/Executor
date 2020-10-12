@@ -6,10 +6,14 @@ import (
 
 type Meta struct {
 	ID               int          `gorm:"PRIMARY_KEY"`
+	Status           string       `gorm:"Column:status"`
+	Samples          string       `gorm:"Column:samples"`
 	Title            string       `gorm:"column:title"`
 	DateType         string       `gorm:"column:dataType"`
 	OriginalFileName string       `gorm:"column:originalFileName"`
+	RemoteFilePath   string       `gorm:"column:remoteFilePath"`
 	FilePath         string       `gorm:"column:filePath"`
+	Encoding         string       `gorm:"column:encoding"`
 	Extension        string       `gorm:"column:extension"`
 	Host             string       `gorm:"column:host"`
 	Port             string       `gorm:"column:port"`
@@ -17,72 +21,52 @@ type Meta struct {
 	DbUser           string       `gorm:"column:dbUser"`
 	Pwd              string       `gorm:"column:pwd"`
 	Table            string       `gorm:"column:table"`
+	Dbms             string       `gorm:"column:dbms"`
 	RowCounts        int          `gorm:"column:rowCounts"`
 	Skip             int          `gorm:"column:skip"`
 	Sheet            int          `gorm:"column:sheet"`
+	UserId           int          `gorm:"column:userId"`
 	IsActive         bool         `gorm:"column:isActive"`
 	Service          Service      `gorm:"foreignkey:metaId"`
+	Stage            Stage        `gorm:"foreignkey:id"`
+	stageId          int          `gorm:"column:stageId"`
 	MetaColumns      []MetaColumn `gorm:"foreignkey:metaId;association_foreignkey:id"`
+}
+
+type Stage struct {
+	ID     int    `gorm:"PRIMARY_KEY"`
+	Status string `gorm:"column:Status"`
+	Metas  []Meta `gorm:"foreignkey:stageId;association_foreignkey:id"`
+	Name   string `gorm:"column:name"`
 }
 
 type MetaColumn struct {
 	ID                 int       `gorm:"PRIMARY_KEY"`
 	OriginalColumnName string    `gorm:"column:originalColumnName"`
 	ColumnName         string    `gorm:"column:columnName"`
-	typ                string    `gorm:"column:type"`
+	Type               string    `gorm:"column:type"`
+	OriginalType       string    `form:"column:originalType"`
 	Size               int       `gorm:"column:size"`
 	Order              int       `gorm:"column:order"`
+	IsHidden           bool      `gorm:"column:isHidden"`
+	IsSearchable       bool      `gorm:"column:isSearchable"`
+	IsNullable         bool      `gorm:"column:isNullable"`
+	DateFormat         string    `gorm:"column:dateFormat"`
 	MetaID             int       `gorm:"column:metaId"`
 	CreatedAt          time.Time `gorm:"column:createdAt"`
 	UpdatedAt          time.Time `gorm:"column:updatedAt"`
 }
 
-type User struct {
-	ID        int       `gorm:"PRIMARY_KEY"`
-	Username  string    `gorm:"column:userName"`
-	Password  string    `gorm:"column:password"`
-	CreatedAt time.Time `gorm:"column:createdAt"`
-	UpdatedAt time.Time `gorm:"column:updatedAt"`
-	Metas     []Meta    `gorm:"foreignkey:userId"`
-}
-
-type Application struct {
-	ID             int       `gorm:"PRIMARY_KEY"`
-	NameSpace      string    `gorm:"column:nameSpace"`
-	Title          string    `gorm:"column:title"`
-	Desc           string    `gorm:"column:description"`
-	CreatedAt      time.Time `gorm:"column:createdAt"`
-	UpdatedAt      time.Time `gorm:"column:updatedAt"`
-	User           *User     `gorm:"foreignkey:userId"`
-	UserID         int       `gorm:"column:userId"`
-	Status         string    `gorm:"column:status"`
-	ServiceColumns []Service `gorm:"foreignkey:applicationId;association_foreignkey:id"`
-}
-
 type Service struct {
-	ID             int             `gorm:"PRIMARY_KEY"`
-	Title          string          `gorm:"column:title"`
-	EntityName     string          `gorm:"column:entityName"`
-	Tn             string          `gorm:"column:tableName"`
-	DataCounts     int             `gorm:"column:dataCounts"`
-	User           *User           `gorm:"foreignkey:userId"`
-	UserID         int             `gorm:"column:userId"`
-	Meta           *Meta           `gorm:"foreignkey:metaId"`
-	MetaID         int             `gorm:"column:metaId"`
-	Status         string          `gorm:"column:status"`
-	ServiceColumns []ServiceColumn `gorm:"foreignkey:serviceId;association_foreignkey:id"`
-	Application    Application     `gorm:"foreignkey:applicationId"`
-	ApplicationID  int             `gorm:"column:applicationId"`
-	CreatedAt      time.Time       `gorm:"column:createdAt"`
-	UpdatedAt      time.Time       `gorm:"column:updatedAt"`
-}
-
-type ServiceColumn struct {
-	ID         int    `gorm:"PRIMARY_KEY"`
-	ColumnName string `gorm:"column:columnName"`
-	Typ        string `gorm:"column:type"`
-	Hidden     bool   `gorm:"column:hidden"`
-	ServiceID  int    `gorm:"column:serviceId"`
+	ID         int       `gorm:"PRIMARY_KEY"`
+	Title      string    `gorm:"column:title"`
+	EntityName string    `gorm:"column:entityName"`
+	UserID     int       `gorm:"column:userId"`
+	Meta       *Meta     `gorm:"foreignkey:metaId"`
+	MetaID     int       `gorm:"column:metaId"`
+	Status     string    `gorm:"column:status"`
+	CreatedAt  time.Time `gorm:"column:createdAt"`
+	UpdatedAt  time.Time `gorm:"column:updatedAt"`
 }
 
 type CountRecord struct {
@@ -97,18 +81,10 @@ func (metaColumn MetaColumn) TableName() string {
 	return "meta_column"
 }
 
-func (application Application) TableName() string {
-	return "application"
-}
-
 func (service Service) TableName() string {
 	return "service"
 }
 
-func (sericeColumn ServiceColumn) TableName() string {
-	return "service_column"
-}
-
-func (user User) TableName() string {
-	return "user"
+func (stage Stage) TableName() string {
+	return "stage"
 }

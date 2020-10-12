@@ -25,6 +25,8 @@ func dbConnect(config ctx.DBConfig) *gorm.DB {
 		panic(err.Error())
 	}
 
+	db.LogMode(true)
+
 	db.DB().SetMaxIdleConns(10)
 	db.DB().SetMaxOpenConns(100)
 

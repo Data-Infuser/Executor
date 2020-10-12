@@ -49,6 +49,6 @@ func (s *Server) Run(network, address string) error {
 	// 	<-s.context.Done()
 	// }()
 
-	println("Server is Running")
+	println("Server is Running on ", address)
 	return s.grpc.Serve(l)
 }
