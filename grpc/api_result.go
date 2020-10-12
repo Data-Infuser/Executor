@@ -2,10 +2,10 @@ package server
 
 import (
 	"context"
-	"fmt"
 	handler "queryprocessor/handler"
 	grpc_executor "queryprocessor/infuser-protobuf/gen/proto/executor"
 	"queryprocessor/sqlbuilder"
+	"queryprocessor/sqlexecutor"
 )
 
 type apiResultServer struct {
@@ -20,24 +20,24 @@ func newApiResultServer(handler *handler.ApiResultHandler) grpc_executor.ApiResu
 
 // GetApiResult : 실질적인 Api 호출 처리 기능
 func (s *apiResultServer) GetApiResult(ctx context.Context, req *grpc_executor.ApiRequest) (*grpc_executor.ApiResult, error) {
-	//e := new(sqlexecutor.Executor)
+	e := new(sqlexecutor.Executor)
 	b := new(sqlbuilder.Builder)
+	meta := b.GetMeta(s.handler.Ctx.MetaDB, req.StageId, req.ServiceId)
 
-	service := b.GetMeta(s.handler.Ctx.MetaDB, req.StageId, req.ServiceId)
-	fmt.Printf("%+v", service)
-	fmt.Printf("213213213231")
-	// searchSQL, matchSQL, countSQL, colType := b.BuildSQL(service, req)
-	// data, matchCnt, totalCnt := e.Execute(s.handler.Ctx.DataDB, searchSQL, matchSQL, countSQL, colType)
+	//fmt.Printf("%+v", meta)
 
-	// page, perPage := sqlbuilder.GetPage(req)
+	searchSQL, matchSQL, countSQL, colType := b.BuildSQL(meta, req)
+	data, matchCnt, totalCnt := e.Execute(s.handler.Ctx.DataDB, searchSQL, matchSQL, countSQL, colType)
 
-	// apiResult := new(grpc_executor.ApiResult)
-	// apiResult.Data = data
-	// apiResult.Page = page
-	// apiResult.PerPage = perPage
-	// apiResult.CurrentCount = int32(len(data))
-	// apiResult.MatchCount = int32(matchCnt)
-	// apiResult.TotalCount = int32(totalCnt)
+	page, perPage := sqlbuilder.GetPage(req)
 
-	return nil, nil
+	apiResult := new(grpc_executor.ApiResult)
+	apiResult.Data = data
+	apiResult.Page = page
+	apiResult.PerPage = perPage
+	apiResult.CurrentCount = int32(len(data))
+	apiResult.MatchCount = int32(matchCnt)
+	apiResult.TotalCount = int32(totalCnt)
+
+	return apiResult, nil
 }
