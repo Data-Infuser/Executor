@@ -22,7 +22,7 @@ func newApiResultServer(handler *handler.ApiResultHandler) grpc_executor.ApiResu
 func (s *apiResultServer) GetApiResult(ctx context.Context, req *grpc_executor.ApiRequest) (*grpc_executor.ApiResult, error) {
 	e := new(sqlexecutor.Executor)
 	b := new(sqlbuilder.Builder)
-	meta := b.GetMeta(s.handler.Ctx.MetaDB, req.StageId, req.ServiceId)
+	meta := b.GetMeta(s.handler.Ctx.MetaDB, req.GetStageId(), req.GetServiceId())
 
 	//fmt.Printf("%+v", meta)
 
