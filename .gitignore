@@ -3,6 +3,4 @@ queryprocessor
 ._DS_Store
 config.yaml
 
-go.sum
-
 infuser-protobuf
