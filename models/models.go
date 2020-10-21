@@ -28,8 +28,8 @@ type Meta struct {
 	UserId           int          `gorm:"column:userId"`
 	IsActive         bool         `gorm:"column:isActive"`
 	Service          Service      `gorm:"foreignkey:metaId"`
-	Stage            Stage        `gorm:"foreignkey:id"`
-	stageId          int          `gorm:"column:stageId"`
+	Stage            Stage        `gorm:"foreignkey:stageId"`
+	StageId          int          `gorm:"column:stageId"`
 	MetaColumns      []MetaColumn `gorm:"foreignkey:metaId;association_foreignkey:id"`
 }
 
@@ -41,20 +41,21 @@ type Stage struct {
 }
 
 type MetaColumn struct {
-	ID                 int       `gorm:"PRIMARY_KEY"`
-	OriginalColumnName string    `gorm:"column:originalColumnName"`
-	ColumnName         string    `gorm:"column:columnName"`
-	Type               string    `gorm:"column:type"`
-	OriginalType       string    `form:"column:originalType"`
-	Size               int       `gorm:"column:size"`
-	Order              int       `gorm:"column:order"`
-	IsHidden           bool      `gorm:"column:isHidden"`
-	IsSearchable       bool      `gorm:"column:isSearchable"`
-	IsNullable         bool      `gorm:"column:isNullable"`
-	DateFormat         string    `gorm:"column:dateFormat"`
-	MetaID             int       `gorm:"column:metaId"`
-	CreatedAt          time.Time `gorm:"column:createdAt"`
-	UpdatedAt          time.Time `gorm:"column:updatedAt"`
+	ID                 int         `gorm:"PRIMARY_KEY"`
+	OriginalColumnName string      `gorm:"column:originalColumnName"`
+	ColumnName         string      `gorm:"column:columnName"`
+	Type               string      `gorm:"column:type"`
+	OriginalType       string      `form:"column:originalType"`
+	Size               int         `gorm:"column:size"`
+	Order              int         `gorm:"column:order"`
+	IsHidden           bool        `gorm:"column:isHidden"`
+	IsSearchable       bool        `gorm:"column:isSearchable"`
+	IsNullable         bool        `gorm:"column:isNullable"`
+	DateFormat         string      `gorm:"column:dateFormat"`
+	MetaID             int         `gorm:"column:metaId"`
+	Params             []MetaParam `gorm:"foreignkey:metaColumnId;association_foreignkey:id"`
+	CreatedAt          time.Time   `gorm:"column:createdAt"`
+	UpdatedAt          time.Time   `gorm:"column:updatedAt"`
 }
 
 type Service struct {
@@ -67,6 +68,17 @@ type Service struct {
 	Status     string    `gorm:"column:status"`
 	CreatedAt  time.Time `gorm:"column:createdAt"`
 	UpdatedAt  time.Time `gorm:"column:updatedAt"`
+}
+
+type MetaParam struct {
+	ID           int         `gorm:"PRIMARY_KEY"`
+	Operator     string      `gorm:"column:operator"`
+	Description  string      `gorm:"column:description"`
+	IsRequired   bool        `gorm:"column:isRequired"`
+	MetaColumn   *MetaColumn `gorm:"foreignkey:metaColumnId"`
+	MetaColumnId int         `gorm:"column:metaColumnId"`
+	CreatedAt    time.Time   `gorm:"column:createdAt"`
+	UpdatedAt    time.Time   `gorm:"column:updatedAt"`
 }
 
 type CountRecord struct {
@@ -87,4 +99,8 @@ func (service Service) TableName() string {
 
 func (stage Stage) TableName() string {
 	return "stage"
+}
+
+func (metaParam MetaParam) TableName() string {
+	return "meta_param"
 }

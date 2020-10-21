@@ -19,7 +19,7 @@ ENV GO111MODULE=on \
 # Build the Go app
 RUN go build -o main .
 
-# Expose port 9090 to the outside world
+# Expose port 9094 to the outside world
 EXPOSE 9094
 
 # Command to run the executable
