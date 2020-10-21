@@ -26,8 +26,9 @@ var colToOp *utils.ColTypeToOperation = utils.NewColTypeToOperation()
 // TODO : Gorm을 이용하여 Select를 여러번 수행하게 되는 부분을 Single 쿼리로 수정되도록 수정 필요
 func (builder *Builder) GetMeta(db *gorm.DB, stageId int32, serviceId int32) *models.Meta {
 	var meta models.Meta
-
-	db.Model(&models.Meta{}).Preload("Service", "`id` = ?", serviceId).Preload("Stage").Preload("MetaColumns").First(&meta)
+	var service models.Service
+	db.Model(&models.Service{}).Find(&service, "`id` = ?", serviceId)
+	db.Model(&models.Meta{}).Preload("Service", "`id` = ?", serviceId).Preload("Stage").Preload("MetaColumns").Preload("MetaColumns.Params").Find(&meta, "`id` = ?", service.MetaID)
 
 	// TODO : 기능 구현을 위하여 상태와 관계없이 주석처리, 구현 후 주석 취소 필요
 	// if meta.Stage.Status != "deployed" {
@@ -57,7 +58,7 @@ func (builder *Builder) BuildSQL(meta *models.Meta, params *grpc_executor.ApiReq
 		if col.IsHidden {
 			continue
 		}
-		cols[i] = col.ColumnName
+		cols[i] = "`" + col.ColumnName + "`"
 		colType[col.ColumnName] = col.Type
 	}
 
